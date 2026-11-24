@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auditoría del banco · PAU Mates CV</title>
+<meta name="author" content="El Círculo de las Mates">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<style>
+  :root{
+    --bg:#090d18; --surface:#0f1626; --card:#121a2b; --card-2:#172136;
+    --border:#27324a; --border-soft:#1d273c; --text:#eef2fb; --text-2:#c6d0e4;
+    --muted:#94a3bd; --accent:#8b8cf8; --accent-2:#6366f1; --teal:#2dd4bf;
+    --green:#34d399; --red:#fb7185; --amber:#fbbf24;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    min-height:100vh; background:
+      radial-gradient(900px 500px at 8% -8%, rgba(99,102,241,.18), transparent 60%),
+      radial-gradient(800px 500px at 100% 0%, rgba(45,212,191,.10), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+    font-size:14px; line-height:1.55; padding:0 20px 50px;
+  }
+  code,pre,.mono,td.mono{ font-family:ui-monospace,Consolas,"Fira Code",monospace; }
+  a{ color:var(--accent); text-underline-offset:3px; }
+  a:hover{ color:var(--teal); }
+  header.top{
+    max-width:1240px; margin:0 auto; padding:18px 0 8px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .brand{ display:flex; align-items:center; gap:11px; color:var(--text); text-decoration:none; }
+  .brand:hover{ color:var(--text); }
+  .logo{
+    display:grid; place-items:center; width:38px; height:38px; border-radius:12px;
+    background:linear-gradient(120deg,#a5b4fc,#818cf8 35%,#2dd4bf);
+    color:#fff; font-family:Georgia,serif; font-size:1.5rem; font-weight:700;
+    box-shadow:0 8px 22px rgba(99,102,241,.3);
+  }
+  .brand strong{ display:block; font-size:.94rem; line-height:1.2; }
+  .brand small{ display:block; color:var(--muted); font-size:.7rem; }
+  .back{
+    padding:8px 13px; border-radius:999px; border:1px solid var(--border);
+    background:var(--card); color:var(--text-2); text-decoration:none; font-size:.8rem; font-weight:700;
+  }
+  .back:hover{ border-color:var(--accent); color:var(--text); }
+  main{ max-width:1240px; margin:0 auto; }
+  .hero{ padding:42px 0 22px; max-width:780px; }
+  .eyebrow{
+    margin:0 0 10px; color:var(--accent); font-size:.7rem; font-weight:800;
+    letter-spacing:.14em; text-transform:uppercase;
+  }
+  .hero h1{
+    margin:0; font-family:Georgia,"Palatino Linotype",serif; font-weight:600;
+    font-size:clamp(2rem,4vw,3rem); line-height:1.06; letter-spacing:-.03em;
+  }
+  .hero p{ margin:14px 0 0; color:var(--muted); font-size:.98rem; max-width:70ch; }
+  .hero strong{ color:var(--text-2); }
+  .alerta{
+    margin:0 0 16px; padding:14px 17px; border-radius:12px; font-weight:700;
+    border:1px solid var(--border); background:var(--card);
+  }
+  .alerta.ok{ color:var(--green); border-color:rgba(52,211,153,.38); background:rgba(52,211,153,.08); }
+  .alerta.mal{ color:var(--red); border-color:rgba(251,113,133,.4); background:rgba(251,113,133,.08); }
+  .alerta.info{ color:var(--accent); border-color:rgba(139,140,248,.4); background:rgba(139,140,248,.08); }
+  .hidden{ display:none !important; }
+  .stats{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+  .stat{
+    padding:16px 18px; border-radius:16px; border:1px solid var(--border);
+    background:linear-gradient(150deg,var(--card),var(--surface));
+  }
+  .stat-label{ color:var(--muted); font-size:.68rem; font-weight:800; letter-spacing:.09em; text-transform:uppercase; }
+  .stat-value{ margin-top:5px; font-size:2rem; font-weight:800; line-height:1; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+  .stat-value.ok{ color:var(--green); }
+  .stat-value.bad{ color:var(--red); }
+  .stat-value.warn{ color:var(--amber); }
+  .stat-sub{ margin-top:5px; color:var(--muted); font-size:.72rem; }
+  .card{
+    margin-bottom:14px; padding:18px 20px; border-radius:16px;
+    border:1px solid var(--border); background:var(--card); box-shadow:0 18px 50px rgba(0,0,0,.18);
+  }
+  .card h2{
+    margin:0 0 12px; color:var(--muted); font-size:.7rem; font-weight:800;
+    letter-spacing:.1em; text-transform:uppercase;
+  }
+  .progress-top{ display:flex; align-items:center; justify-content:space-between; gap:14px; }
+  #stage{ color:var(--text-2); font-size:.86rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #counter{ color:var(--muted); font-size:.78rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .track{ height:10px; margin:11px 0 10px; border-radius:999px; background:#070b13; border:1px solid var(--border-soft); overflow:hidden; }
+  #bar{ width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--teal)); transition:width .2s ease; }
+  .progress-actions{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  button{
+    padding:8px 13px; border-radius:9px; border:1px solid var(--border);
+    background:var(--card-2); color:var(--text-2); font:inherit; font-size:.78rem;
+    font-weight:700; cursor:pointer;
+  }
+  button:hover:not(:disabled){ border-color:var(--accent); color:var(--text); }
+  button:disabled{ opacity:.45; cursor:not-allowed; }
+  .filtros{ display:grid; grid-template-columns:1.5fr repeat(4,1fr); gap:8px; margin-bottom:12px; }
+  .filtros label{ display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:.66rem; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+  input,select{
+    width:100%; padding:8px 10px; border-radius:8px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font:inherit; font-size:.8rem;
+  }
+  input:focus,select:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(139,140,248,.15); }
+  .tabla-cab{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .tabla-cab h2{ margin:0; }
+  #visible{ color:var(--muted); font-size:.72rem; }
+  .table-wrap{ overflow-x:auto; border-radius:10px; border:1px solid var(--border-soft); }
+  table{ width:100%; border-collapse:collapse; font-size:.78rem; min-width:900px; }
+  th,td{ padding:9px 10px; text-align:left; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  th{ color:var(--muted); background:var(--surface); font-size:.64rem; letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(139,140,248,.04); }
+  td.mono{ font-size:.72rem; white-space:nowrap; }
+  .pill{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:.64rem; font-weight:800; border:1px solid transparent; white-space:nowrap; }
+  .pill.ok{ color:var(--green); background:rgba(52,211,153,.1); border-color:rgba(52,211,153,.3); }
+  .pill.warn{ color:var(--amber); background:rgba(251,191,36,.1); border-color:rgba(251,191,36,.3); }
+  .pill.bad{ color:var(--red); background:rgba(251,113,133,.1); border-color:rgba(251,113,133,.3); }
+  .nivel{ color:var(--muted); font-size:.7rem; white-space:nowrap; }
+  .nivel-3{ color:var(--red); }
+  .detalle{ color:var(--muted); font-size:.7rem; max-width:320px; }
+  .empty{ padding:22px; text-align:center; color:var(--muted); font-size:.85rem; }
+  details.log-card summary{ cursor:pointer; color:var(--muted); font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  details.log-card summary:hover{ color:var(--text); }
+  #log{
+    height:170px; margin-top:10px; padding:9px 11px; overflow-y:auto; border-radius:8px;
+    background:#070b13; border:1px solid var(--border-soft); font-family:ui-monospace,Consolas,monospace;
+    font-size:.72rem; color:var(--muted); white-space:pre-wrap; word-break:break-word;
+  }
+  .log-line{ padding:1px 0; }
+  .log-line.ok{ color:var(--green); }
+  .log-line.err{ color:var(--red); }
+  .log-line.warn{ color:var(--amber); }
+  .log-line.info{ color:var(--accent); }
+  footer{ max-width:1240px; margin:8px auto 0; color:var(--muted); font-size:.72rem; }
+  @media (max-width:900px){
+    .stats{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .filtros{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width:560px){
+    body{ padding:0 14px 36px; }
+    .stats{ grid-template-columns:1fr 1fr; }
+    .filtros{ grid-template-columns:1fr; }
+    .hero{ padding-top:28px; }
+    .hero h1{ font-size:2rem; }
+    header.top{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="../index.html">
+    <span class="logo" aria-hidden="true">π</span>
+    <span><strong>PAU Mates CV</strong><small>Auditoría · El Círculo de las Mates</small></span>
+  </a>
+  <a class="back" href="../index.html">← Volver a la app</a>
+</header>
+
+<main>
+  <section class="hero">
+    <p class="eyebrow">Herramientas · Control de calidad</p>
+    <h1>Auditoría del banco</h1>
+    <p>Comprueba la estructura, las respuestas, las opciones y el LaTeX de todos los ejercicios cargados. Los datos y KaTeX se leen del propio repositorio: la página funciona sin CDN y sin backend.</p>
+  </section>
+
+  <div id="alerta" class="alerta info" role="status" aria-live="polite">Cargando el banco y preparando la auditoría…</div>
+
+  <section class="stats" aria-label="Resumen">
+    <div class="stat">
+      <div class="stat-label">Ejercicios</div>
+      <div id="stat-total" class="stat-value">—</div>
+      <div id="stat-total-sub" class="stat-sub">esperando</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Nivel PAU</div>
+      <div id="stat-pau" class="stat-value">—</div>
+      <div id="stat-pau-sub" class="stat-sub">nivel 3</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Cobertura</div>
+      <div id="stat-ok" class="stat-value">—</div>
+      <div id="stat-ok-sub" class="stat-sub">sin incidencias</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Fallos</div>
+      <div id="stat-errors" class="stat-value">—</div>
+      <div id="stat-errors-sub" class="stat-sub">errores detectados</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="progress-top">
+      <span id="stage">Preparando la auditoría…</span>
+      <span id="counter">0 / 0</span>
+    </div>
+    <div class="track"><div id="bar"></div></div>
+    <div class="progress-actions">
+      <button id="btn-repeat" type="button" disabled>Repetir auditoría</button>
+      <button id="btn-json" type="button" disabled>Descargar informe JSON</button>
+      <span id="engine" class="stat-sub">Motor: validación local + KaTeX</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="tabla-cab">
+      <h2>Banco completo</h2>
+      <span id="visible">— ejercicios visibles</span>
+    </div>
+    <div class="filtros">
+      <label>Buscar
+        <input id="f-buscar" type="search" placeholder="ID, título, bloque…" autocomplete="off">
+      </label>
+      <label>Materia
+        <select id="f-materia"><option value="">Todas</option></select>
+      </label>
+      <label>Nivel
+        <select id="f-nivel">
+          <option value="">Todos</option>
+          <option value="1">Básico</option>
+          <option value="2">Medio</option>
+          <option value="3">Nivel PAU</option>
+        </select>
+      </label>
+      <label>Bloque
+        <select id="f-bloque"><option value="">Todos</option></select>
+      </label>
+      <label>Tipo
+        <select id="f-tipo">
+          <option value="">Todos</option>
+          <option value="opcion">Opción múltiple</option>
+        </select>
+      </label>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Materia</th><th>Nivel</th><th>Bloque</th><th>Tipo</th><th>Título</th><th>Estado</th><th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="filas">
+          <tr><td colspan="8" class="empty">Cargando ejercicios…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="card log-card">
+    <summary>Log de la auditoría</summary>
+    <div id="log" aria-live="polite"></div>
+  </details>
+</main>
+
+<footer>
+  PAU Mates CV · Auditoría del banco · <a href="https://sergarb1.github.io/elcirculodelasmates" target="_blank" rel="noopener">El Círculo de las Mates</a> · <a href="../index.html">Abrir la app</a>
+</footer>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const esc = (valor) => String(valor == null ? '' : valor).replace(/[&<>"']/g, (c) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[c]));
+
+const MATERIAS = {
+  'mates-ii': { nombre: 'Matemáticas II', bloques: ['probabilidad', 'matrices', 'sistemas', 'complejos', 'limites', 'derivadas', 'integrales', 'optimizacion', 'vectores', 'rectas-planos', 'geometria'] },
+  'ccss-ii': { nombre: 'CCSS II', bloques: ['probabilidad', 'estadistica', 'inferencia', 'matrices', 'sistemas', 'sucesiones', 'programacion-lineal', 'funciones', 'limites', 'derivadas', 'integrales'] },
+  'mates-i': { nombre: 'Matemáticas I', bloques: ['algebra', 'numeros-reales', 'sucesiones', 'trigonometria', 'conicas', 'vectores', 'funciones', 'limites', 'derivadas'] },
+  'ccss-i': { nombre: 'CCSS I', bloques: ['numerico', 'algebra', 'sucesiones', 'estadistica', 'funciones', 'probabilidad'] }
+};
+const NIVELES = { 1: 'Básico', 2: 'Medio', 3: 'Nivel PAU' };
+const TIPOS = { opcion: 'Opción múltiple' };
+const BLOQUES = {
+  probabilidad: 'Probabilidad', estadistica: 'Estadística', numerico: 'Números', algebra: 'Álgebra',
+  matrices: 'Matrices', sistemas: 'Sistemas', 'programacion-lineal': 'Programación lineal',
+  funciones: 'Funciones', limites: 'Límites y continuidad', derivadas: 'Derivadas',
+  integrales: 'Integrales', vectores: 'Vectores', geometria: 'Geometría', trigonometria: 'Trigonometría',
+  complejos: 'Complejos', optimizacion: 'Optimización', sucesiones: 'Sucesiones',
+  inferencia: 'Inferencia', 'numeros-reales': 'Números reales', conicas: 'Cónicas',
+  'rectas-planos': 'Rectas y planos'
+};
+
+const ARCHIVOS = [
+  { ruta: '../js/data/mates-ii/nivel-1.js', materia: 'mates-ii', nivel: 1 },
+  { ruta: '../js/data/mates-ii/nivel-2.js', materia: 'mates-ii', nivel: 2 },
+  { ruta: '../js/data/mates-ii/nivel-3.js', materia: 'mates-ii', nivel: 3 },
+  { ruta: '../js/data/ccss-ii/probabilidad.js', materia: 'ccss-ii', bloque: 'probabilidad' },
+  { ruta: '../js/data/ccss-ii/estadistica.js', materia: 'ccss-ii', bloque: 'estadistica' },
+  { ruta: '../js/data/ccss-ii/inferencia.js', materia: 'ccss-ii', bloque: 'inferencia' },
+  { ruta: '../js/data/ccss-ii/matrices.js', materia: 'ccss-ii', bloque: 'matrices' },
+  { ruta: '../js/data/ccss-ii/sistemas.js', materia: 'ccss-ii', bloque: 'sistemas' },
+  { ruta: '../js/data/ccss-ii/sucesiones.js', materia: 'ccss-ii', bloque: 'sucesiones' },
+  { ruta: '../js/data/ccss-ii/programacion-lineal.js', materia: 'ccss-ii', bloque: 'programacion-lineal' },
+  { ruta: '../js/data/ccss-ii/funciones.js', materia: 'ccss-ii', bloque: 'funciones' },
+  { ruta: '../js/data/ccss-ii/limites.js', materia: 'ccss-ii', bloque: 'limites' },
+  { ruta: '../js/data/ccss-ii/derivadas.js', materia: 'ccss-ii', bloque: 'derivadas' },
+  { ruta: '../js/data/ccss-ii/integrales.js', materia: 'ccss-ii', bloque: 'integrales' },
+  { ruta: '../js/data/mates-i/nivel-1.js', materia: 'mates-i', nivel: 1 },
+  { ruta: '../js/data/mates-i/nivel-2.js', materia: 'mates-i', nivel: 2 },
+  { ruta: '../js/data/ccss-i/nivel-1.js', materia: 'ccss-i', nivel: 1 },
+  { ruta: '../js/data/ccss-i/nivel-2.js', materia: 'ccss-i', nivel: 2 }
+];
+
+const estado = {
+  done: false,
+  total: 0,
+  completed: 0,
+  errors: [],
+  warnings: [],
+  results: [],
+  byMateria: {},
+  byNivel: {},
+  byTipo: {}
+};
+window.__audit = estado;
+
+const logEl = $('log');
+const sandbox = document.createElement('div');
+sandbox.style.cssText = 'position:absolute;left:-99999px;top:0;width:820px;visibility:hidden;';
+document.body.appendChild(sandbox);
+
+let resultadosPorId = new Map();
+let ubicaciones = new Map();
+let iniciado = false;
+
+function log(texto, tipo = '') {
+  const linea = document.createElement('div');
+  linea.className = 'log-line ' + tipo;
+  linea.textContent = texto;
+  logEl.appendChild(linea);
+  while (logEl.childElementCount > 300) logEl.removeChild(logEl.firstElementChild);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setStage(texto) { $('stage').textContent = texto; }
+function setProgress(hechos, total) {
+  const pct = total ? Math.round((hechos / total) * 100) : 0;
+  $('bar').style.width = pct + '%';
+  $('counter').textContent = hechos + ' / ' + total + '  (' + pct + '%)';
+}
+
+function yieldUI() {
+  return new Promise((resolver) => setTimeout(resolver, 0));
+}
+
+function cargarScript(src) {
+  return new Promise((resolver, rechazar) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = false;
+    script.onload = () => resolver();
+    script.onerror = () => rechazar(new Error('No se pudo cargar ' + src));
+    document.head.appendChild(script);
+  });
+}
+
+function controlChars(texto) {
+  return /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(texto);
+}
+
+function campos(ej) {
+  const lista = [
+    ['enunciado', ej.enunciado],
+    ['pista', ej.pista],
+    ['truco', ej.truco],
+    ['errorTipico', ej.errorTipico],
+    ['titulo', ej.titulo]
+  ];
+  (ej.solucion || []).forEach((paso, i) => {
+    lista.push(['solucion[' + i + '].t', paso.t]);
+    lista.push(['solucion[' + i + '].d', paso.d]);
+  });
+  (ej.partes || []).forEach((parte, i) => {
+    lista.push(['partes[' + i + '].etiqueta', parte.etiqueta]);
+    (parte.opciones || []).forEach((opcion, j) => lista.push(['partes[' + i + '].opciones[' + j + ']', opcion]));
+  });
+  (ej.opciones || []).forEach((opcion, i) => lista.push(['opciones[' + i + ']', opcion]));
+  return lista;
+}
+
+function validarTexto(valor, campo, errores) {
+  if (typeof valor !== 'string' || !valor.trim()) {
+    errores.push({ campo, detalle: 'debe ser un texto no vacío' });
+    return;
+  }
+  if (controlChars(valor)) {
+    errores.push({ campo, detalle: 'contiene caracteres de control; revisa los backslashes' });
+  }
+}
+
+function validarEjercicio(ej, ubicacion) {
+  const errores = [];
+  const avisos = [];
+  const id = ej.id || '(sin id)';
+
+  if (!ej.id || typeof ej.id !== 'string') errores.push({ campo: 'id', detalle: 'falta el id' });
+  if (!MATERIAS[ej.materia]) errores.push({ campo: 'materia', detalle: 'materia desconocida: ' + ej.materia });
+  else if (!MATERIAS[ej.materia].bloques.includes(ej.bloque)) {
+    errores.push({ campo: 'bloque', detalle: 'bloque no válido para ' + ej.materia + ': ' + ej.bloque });
+  }
+  if (![1, 2, 3].includes(ej.nivel)) errores.push({ campo: 'nivel', detalle: 'debe ser 1, 2 o 3' });
+  if (!TIPOS[ej.tipo]) errores.push({ campo: 'tipo', detalle: 'tipo no válido: ' + ej.tipo });
+
+  validarTexto(ej.titulo, 'titulo', errores);
+  validarTexto(ej.fuente, 'fuente', errores);
+  validarTexto(ej.enunciado, 'enunciado', errores);
+  validarTexto(ej.pista, 'pista', errores);
+  validarTexto(ej.truco, 'truco', errores);
+  validarTexto(ej.errorTipico, 'errorTipico', errores);
+
+  if (!Array.isArray(ej.solucion) || ej.solucion.length < 2 || ej.solucion.length > 6) {
+    errores.push({ campo: 'solucion', detalle: 'debe tener entre 2 y 6 pasos' });
+  } else {
+    ej.solucion.forEach((paso, i) => {
+      validarTexto(paso.t, 'solucion[' + i + '].t', errores);
+      validarTexto(paso.d, 'solucion[' + i + '].d', errores);
+    });
+  }
+
+  if (ej.tipo === 'opcion' && Array.isArray(ej.partes)) {
+    if (ej.partes.length < 1 || ej.partes.length > 4) {
+      errores.push({ campo: 'partes', detalle: 'debe tener entre 1 y 4 apartados' });
+    }
+    ej.partes.forEach((parte, i) => {
+      validarTexto(parte.etiqueta, 'partes[' + i + '].etiqueta', errores);
+      if ('respuesta' in parte || 'tolerancia' in parte) {
+        errores.push({ campo: 'partes[' + i + ']', detalle: 'un apartado de opción no debe tener respuesta ni tolerancia' });
+      }
+      if (!Array.isArray(parte.opciones) || parte.opciones.length !== 4) {
+        errores.push({ campo: 'partes[' + i + '].opciones', detalle: 'debe tener 4 opciones' });
+      } else {
+        parte.opciones.forEach((opcion, j) => validarTexto(opcion, 'partes[' + i + '].opciones[' + j + ']', errores));
+        if (new Set(parte.opciones).size !== parte.opciones.length) {
+          errores.push({ campo: 'partes[' + i + '].opciones', detalle: 'hay opciones duplicadas' });
+        }
+      }
+      if (!Number.isInteger(parte.correcta) || !Array.isArray(parte.opciones) || parte.correcta < 0 || parte.correcta >= parte.opciones.length) {
+        errores.push({ campo: 'partes[' + i + '].correcta', detalle: 'debe ser un índice válido de opciones' });
+      }
+    });
+  } else if (ej.tipo === 'opcion') {
+    if (!Array.isArray(ej.opciones) || ej.opciones.length !== 4) {
+      errores.push({ campo: 'opciones', detalle: 'debe tener 4 opciones' });
+    } else {
+      ej.opciones.forEach((opcion, i) => validarTexto(opcion, 'opciones[' + i + ']', errores));
+      if (new Set(ej.opciones).size !== ej.opciones.length) {
+        errores.push({ campo: 'opciones', detalle: 'hay opciones duplicadas' });
+      }
+    }
+    if (!Number.isInteger(ej.correcta) || !Array.isArray(ej.opciones) || ej.correcta < 0 || ej.correcta >= ej.opciones.length) {
+      errores.push({ campo: 'correcta', detalle: 'debe ser un índice válido de opciones' });
+    }
+  }
+
+  if (ubicacion) {
+    if (ubicacion.materia !== ej.materia) {
+      errores.push({ campo: 'materia', detalle: 'está en ' + ubicacion.ruta + ' pero su materia es ' + ej.materia });
+    }
+    if (ubicacion.nivel != null && ubicacion.nivel !== ej.nivel) {
+      errores.push({ campo: 'nivel', detalle: 'está en ' + ubicacion.ruta + ' pero su nivel es ' + ej.nivel });
+    }
+    if (ubicacion.bloque && ubicacion.bloque !== ej.bloque) {
+      errores.push({ campo: 'bloque', detalle: 'está en ' + ubicacion.ruta + ' pero su bloque es ' + ej.bloque });
+    }
+  } else {
+    avisos.push({ campo: 'archivo', detalle: 'no se pudo asociar el ejercicio a un archivo' });
+  }
+
+  if (!/^(m2|cs2|m1|cs1)-[a-z]+-\d{2}$/.test(id)) {
+    avisos.push({ campo: 'id', detalle: 'el id no sigue el formato materia-bloque-número' });
+  }
+
+  return { id, errores, avisos };
+}
+
+function auditarLatex(ej) {
+  const errores = [];
+  if (typeof window.renderMathInElement !== 'function') return errores;
+  for (const [campo, texto] of campos(ej)) {
+    if (typeof texto !== 'string' || !texto.includes('$')) continue;
+    const div = document.createElement('div');
+    div.textContent = texto;
+    sandbox.appendChild(div);
+    try {
+      window.renderMathInElement(div, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false }
+        ],
+        throwOnError: false,
+        strict: false,
+        errorColor: '#fb7185'
+      });
+      const mal = div.querySelector('.katex-error');
+      if (mal) errores.push({ campo: 'latex:' + campo, detalle: String(mal.textContent || '').slice(0, 180) });
+    } catch (error) {
+      errores.push({ campo: 'latex:' + campo, detalle: String(error && error.message || error).slice(0, 180) });
+    }
+    div.remove();
+  }
+  return errores;
+}
+
+function pintarFiltros() {
+  const materias = Object.keys(MATERIAS);
+  $('f-materia').innerHTML = '<option value="">Todas</option>' + materias
+    .map((id) => '<option value="' + id + '">' + esc(MATERIAS[id].nombre) + '</option>').join('');
+  const bloques = [...new Set(estado.results.map((r) => r.ej.bloque))].sort((a, b) => BLOQUES[a].localeCompare(BLOQUES[b]));
+  $('f-bloque').innerHTML = '<option value="">Todos</option>' + bloques
+    .map((id) => '<option value="' + id + '">' + esc(BLOQUES[id]) + '</option>').join('');
+}
+
+function pintarTabla() {
+  const busqueda = $('f-buscar').value.trim().toLowerCase();
+  const materia = $('f-materia').value;
+  const nivel = $('f-nivel').value;
+  const bloque = $('f-bloque').value;
+  const tipo = $('f-tipo').value;
+  const filas = estado.results.filter((r) => {
+    const ej = r.ej;
+    if (materia && ej.materia !== materia) return false;
+    if (nivel && String(ej.nivel) !== nivel) return false;
+    if (bloque && ej.bloque !== bloque) return false;
+    if (tipo && ej.tipo !== tipo) return false;
+    if (busqueda) {
+      const texto = [ej.id, ej.titulo, ej.bloque, ej.materia, ej.fuente].join(' ').toLowerCase();
+      if (!texto.includes(busqueda)) return false;
+    }
+    return true;
+  });
+
+  $('visible').textContent = filas.length + ' de ' + estado.results.length + ' ejercicios';
+
+  if (!filas.length) {
+    $('filas').innerHTML = '<tr><td colspan="8" class="empty">Ningún ejercicio coincide con los filtros.</td></tr>';
+    return;
+  }
+
+  $('filas').innerHTML = filas.map((r) => {
+    const ej = r.ej;
+    const mal = r.errores.length > 0;
+    const aviso = !mal && r.avisos.length > 0;
+    const estadoTexto = mal ? 'FALLO' : (aviso ? 'AVISO' : 'OK');
+    const clase = mal ? 'bad' : (aviso ? 'warn' : 'ok');
+    const detalle = mal ? r.errores[0].campo + ': ' + r.errores[0].detalle
+      : (aviso ? r.avisos[0].campo + ': ' + r.avisos[0].detalle : '—');
+    return '<tr>' +
+      '<td class="mono">' + esc(ej.id) + '</td>' +
+      '<td>' + esc(MATERIAS[ej.materia] ? MATERIAS[ej.materia].nombre : ej.materia) + '</td>' +
+      '<td><span class="nivel nivel-' + esc(ej.nivel) + '">' + esc(NIVELES[ej.nivel] || ej.nivel) + '</span></td>' +
+      '<td>' + esc(BLOQUES[ej.bloque] || ej.bloque) + '</td>' +
+      '<td>' + esc(TIPOS[ej.tipo] || ej.tipo) + '</td>' +
+      '<td>' + esc(ej.titulo) + '</td>' +
+      '<td><span class="pill ' + clase + '">' + estadoTexto + '</span></td>' +
+      '<td class="detalle">' + esc(detalle) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function actualizarStats() {
+  const total = estado.total;
+  const pau = estado.results.filter((r) => r.ej.nivel === 3).length;
+  const ok = estado.results.filter((r) => r.errores.length === 0).length;
+  $('stat-total').textContent = total;
+  $('stat-total-sub').textContent = estado.done ? 'banco cargado' : 'cargando…';
+  $('stat-pau').textContent = pau;
+  $('stat-pau-sub').textContent = 'de ' + total + ' ejercicios';
+  $('stat-ok').textContent = ok + '/' + total;
+  $('stat-ok').className = 'stat-value ' + (estado.done ? (ok === total ? 'ok' : 'bad') : '');
+  $('stat-ok-sub').textContent = ok + ' sin incidencias';
+  $('stat-errors').textContent = estado.errors.length;
+  $('stat-errors').className = 'stat-value ' + (estado.errors.length ? 'bad' : (estado.done ? 'ok' : ''));
+  $('stat-errors-sub').textContent = estado.errors.length === 1 ? 'error detectado' : 'errores detectados';
+}
+
+async function ejecutar() {
+  if (iniciado) return;
+  iniciado = true;
+  const alerta = $('alerta');
+  alerta.className = 'alerta info';
+  alerta.textContent = 'Cargando KaTeX y los ' + ARCHIVOS.length + ' archivos del banco…';
+  log('Inicio de la auditoría', 'info');
+
+  try {
+    await cargarScript('../vendor/katex.min.js');
+    await cargarScript('../vendor/contrib/auto-render.min.js');
+    log('KaTeX cargado desde vendor/.', 'ok');
+
+    for (const archivo of ARCHIVOS) {
+      const antes = window.PAU_DATA && Array.isArray(window.PAU_DATA.ejercicios) ? window.PAU_DATA.ejercicios.length : 0;
+      setStage('Cargando ' + archivo.ruta.replace('../js/data/', ''));
+      await cargarScript(archivo.ruta);
+      const despues = window.PAU_DATA && Array.isArray(window.PAU_DATA.ejercicios) ? window.PAU_DATA.ejercicios.length : 0;
+      const nuevos = window.PAU_DATA.ejercicios.slice(antes, despues);
+      nuevos.forEach((ej) => ubicaciones.set(ej.id, { materia: archivo.materia, nivel: archivo.nivel, bloque: archivo.bloque, ruta: archivo.ruta.replace('../js/data/', '') }));
+      log(archivo.ruta.replace('../js/data/', '') + ': ' + nuevos.length + ' ejercicios', nuevos.length ? 'ok' : 'warn');
+    }
+
+    const ejercicios = window.PAU_DATA.ejercicios;
+    estado.total = ejercicios.length;
+    setProgress(0, estado.total);
+    setStage('Validando estructura y contenido…');
+    alerta.textContent = 'Validando ' + estado.total + ' ejercicios…';
+
+    const ids = new Set();
+    for (let i = 0; i < ejercicios.length; i += 1) {
+      const ej = ejercicios[i];
+      const ubicacion = ubicaciones.get(ej.id);
+      const resultado = validarEjercicio(ej, ubicacion);
+      if (ids.has(ej.id)) resultado.errores.push({ campo: 'id', detalle: 'id duplicado' });
+      ids.add(ej.id);
+
+      setStage('Revisando ' + ej.id + ' · ' + ej.titulo);
+      resultado.errores.push(...auditarLatex(ej));
+      estado.results.push({ ej, errores: resultado.errores, avisos: resultado.avisos });
+      resultado.errores.forEach((e) => estado.errors.push({ id: ej.id, campo: e.campo, detalle: e.detalle }));
+      resultado.avisos.forEach((a) => estado.warnings.push({ id: ej.id, campo: a.campo, detalle: a.detalle }));
+
+      estado.completed = i + 1;
+      setProgress(estado.completed, estado.total);
+      actualizarStats();
+      if (i % 8 === 0) await yieldUI();
+    }
+
+    estado.byMateria = {};
+    estado.byNivel = {};
+    estado.byTipo = {};
+    estado.results.forEach((r) => {
+      const ej = r.ej;
+      estado.byMateria[ej.materia] = (estado.byMateria[ej.materia] || 0) + 1;
+      estado.byNivel[ej.nivel] = (estado.byNivel[ej.nivel] || 0) + 1;
+      estado.byTipo[ej.tipo] = (estado.byTipo[ej.tipo] || 0) + 1;
+    });
+
+    estado.done = true;
+    setStage('Auditoría completada');
+    setProgress(estado.total, estado.total);
+    actualizarStats();
+    pintarFiltros();
+    pintarTabla();
+    $('btn-json').disabled = false;
+    $('btn-repeat').disabled = false;
+
+    if (estado.errors.length) {
+      alerta.className = 'alerta mal';
+      alerta.textContent = estado.errors.length + ' error(es) detectado(s) en ' + estado.total + ' ejercicios. Revisa la tabla y el log.';
+      log('Auditoría terminada con ' + estado.errors.length + ' errores y ' + estado.warnings.length + ' avisos.', 'err');
+    } else {
+      alerta.className = 'alerta ok';
+      alerta.textContent = 'Banco validado: ' + estado.total + ' ejercicios, estructura correcta y LaTeX sin errores' +
+        (estado.warnings.length ? ' (' + estado.warnings.length + ' aviso(s) no bloqueante(s)).' : '.');
+      log('Auditoría terminada sin errores. ' + estado.warnings.length + ' avisos.', 'ok');
+    }
+
+    window.__audit = estado;
+    console.table({
+      ejercicios: estado.total,
+      'nivel PAU': estado.byNivel[3] || 0,
+      errores: estado.errors.length,
+      avisos: estado.warnings.length
+    });
+  } catch (error) {
+    alerta.className = 'alerta mal';
+    alerta.textContent = 'No se pudo completar la auditoría: ' + (error && error.message || error);
+    log('ERROR: ' + (error && error.message || error), 'err');
+    setStage('Auditoría interrumpida');
+    $('btn-repeat').disabled = false;
+  }
+}
+
+function descargar() {
+  const informe = {
+    app: 'PAU Mates CV',
+    proyecto: 'El Círculo de las Mates',
+    generado: new Date().toISOString(),
+    total: estado.total,
+    nivelPau: estado.byNivel[3] || 0,
+    errores: estado.errors,
+    avisos: estado.warnings,
+    porMateria: estado.byMateria,
+    porNivel: estado.byNivel,
+    porTipo: estado.byTipo,
+    resultados: estado.results.map((r) => ({
+      id: r.ej.id,
+      materia: r.ej.materia,
+      nivel: r.ej.nivel,
+      bloque: r.ej.bloque,
+      tipo: r.ej.tipo,
+      errores: r.errores,
+      avisos: r.avisos
+    }))
+  };
+  const blob = new Blob([JSON.stringify(informe, null, 2)], { type: 'application/json' });
+  const enlace = document.createElement('a');
+  enlace.href = URL.createObjectURL(blob);
+  enlace.download = 'auditoria-pau-mates.json';
+  document.body.appendChild(enlace);
+  enlace.click();
+  enlace.remove();
+  setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+}
+
+$('f-buscar').addEventListener('input', pintarTabla);
+$('f-materia').addEventListener('change', pintarTabla);
+$('f-nivel').addEventListener('change', pintarTabla);
+$('f-bloque').addEventListener('change', pintarTabla);
+$('f-tipo').addEventListener('change', pintarTabla);
+$('btn-repeat').addEventListener('click', () => location.reload());
+$('btn-json').addEventListener('click', descargar);
+
+ejecutar();
+</script>
+</body>
+</html>

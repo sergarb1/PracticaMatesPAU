@@ -1,0 +1,13 @@
+{
+  "name": "pau-mates-cv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Practica Matemáticas I, II y CCSS para la PAU de la Comunitat Valenciana. PWA sin backend.",
+  "author": "El Círculo de las Mates",
+  "scripts": {
+    "serve": "python -m http.server 8080",
+    "validate": "node scripts/validar-banco.mjs"
+  },
+  "keywords": ["pau", "matematicas", "bachillerato", "comunitat-valenciana", "pwa"],
+  "license": "MIT"
+}

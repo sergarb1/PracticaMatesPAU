@@ -1,0 +1,7 @@
+#!/bin/sh
+# Elimina atribuciones de asistentes (Codebuff) del mensaje de commit.
+# Se activa con: git config core.hooksPath .githooks
+archivo="$1"
+tmp="${archivo}.tmp"
+grep -v -i 'codebuff' "$archivo" > "$tmp" || true
+mv "$tmp" "$archivo"

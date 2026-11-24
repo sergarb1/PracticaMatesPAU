@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es" data-tema="oscuro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PAU Mates CV · Practica Matemáticas de 1º y 2º de Bachillerato</title>
+  <meta name="description" content="Practica Matemáticas I, II y Aplicadas a las CCSS con ejercicios interactivos, pistas, trucos y simulacros de la PAU de la Comunitat Valenciana. Instalable y sin conexión.">
+  <meta name="author" content="El Círculo de las Mates">
+  <meta name="theme-color" content="#0b1020" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f4f6fb" media="(prefers-color-scheme: light)">
+  <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PAU Mates">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="./vendor/katex.min.css">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script>
+    (function () {
+      try {
+        var guardado = localStorage.getItem('paumates.tema');
+        var tema = guardado || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'claro' : 'oscuro');
+        document.documentElement.dataset.tema = tema;
+      } catch (e) {
+        document.documentElement.dataset.tema = 'oscuro';
+      }
+    })();
+  </script>
+</head>
+<body>
+  <a class="saltar" href="#vista">Saltar al contenido</a>
+
+  <header class="cabecera">
+    <div class="cabecera-inner">
+      <a class="marca" href="#/entrenar" aria-label="PAU Mates CV, ir a entrenar">
+        <span class="marca-icono" aria-hidden="true">π</span>
+        <span class="marca-texto">
+          <strong>PAU Mates CV</strong>
+          <small>por El Círculo de las Mates · 1º y 2º Bachillerato</small>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Secciones principales">
+        <a class="nav-link" href="#/entrenar" data-vista="entrenar">Entrenar</a>
+        <a class="nav-link" href="#/pasos" data-vista="pasos">Pasos</a>
+        <a class="nav-link" href="#/simulacro" data-vista="simulacro">Simulacro</a>
+        <a class="nav-link" href="#/formulario" data-vista="formulario">Formulario</a>
+        <a class="nav-link" href="#/guia" data-vista="guia">Guía</a>
+        <a class="nav-link" href="#/progreso" data-vista="progreso">Progreso</a>
+      </nav>
+
+      <div class="cabecera-acciones">
+        <span class="pill-racha" title="Días seguidos practicando"><span aria-hidden="true">🔥</span> <span id="hdr-racha">0</span><span class="oculto-movil"> racha</span></span>
+        <span class="pill-racha" title="Ejercicios dominados"><span aria-hidden="true">✓</span> <span id="hdr-resueltos">0</span><span class="oculto-movil"> hechos</span></span>
+        <button type="button" id="btn-instalar" class="btn btn-instalar" hidden>
+          <svg class="icono-movil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="7" y="2" width="10" height="20" rx="2.5"></rect>
+            <path d="M10 5h4"></path>
+            <circle cx="12" cy="18" r="0.8" fill="currentColor" stroke="none"></circle>
+          </svg>
+          <span>Instalar app</span>
+        </button>
+        <button type="button" id="btn-tema" class="btn-icono" aria-label="Cambiar tema">☀</button>
+      </div>
+    </div>
+    <div id="estado-red" class="estado-red" role="status" hidden>Sin conexión · la app sigue funcionando</div>
+  </header>
+
+  <main id="vista" class="contenedor" tabindex="-1">
+    <noscript>
+      <div class="vacio">
+        <h1>Necesitas JavaScript</h1>
+        <p>Esta app resuelve y corrige los ejercicios en tu navegador. Activa JavaScript para usarla.</p>
+      </div>
+    </noscript>
+  </main>
+
+  <footer class="pie">
+    <div class="pie-inner">
+      <div class="pie-autor">
+        <img class="pie-foto" src="./img/elcirculo-mates.png" alt="El Círculo de las Mates" width="56" height="54" loading="lazy">
+        <div>
+          <strong>PAU Mates CV</strong>
+          <p>por <strong><a href="https://sergarb1.github.io/elcirculodelasmates" target="_blank" rel="noopener">El Círculo de las Mates</a></strong> · Matemáticas I, II y Aplicadas a las CCSS · Comunitat Valenciana.</p>
+        </div>
+      </div>
+      <p class="pie-nota">Material propio de <a href="https://sergarb1.github.io/elcirculodelasmates" target="_blank" rel="noopener">El Círculo de las Mates</a> adaptado al estilo de la PAU. No es una guía oficial: prevalecen la convocatoria y los criterios publicados por la Comisión de Materia. <a href="#/guia">Fuentes y créditos</a> · <a href="./tools/audit.html">Auditoría del banco</a>.</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script defer src="./vendor/katex.min.js"></script>
+  <script defer src="./vendor/contrib/auto-render.min.js"></script>
+  <script defer src="./js/formulas.js"></script>
+  <script defer src="./js/data/mates-ii/nivel-1.js"></script>
+  <script defer src="./js/data/mates-ii/nivel-2.js"></script>
+  <script defer src="./js/data/mates-ii/nivel-3.js"></script>
+  <script defer src="./js/data/ccss-ii/probabilidad.js"></script>
+  <script defer src="./js/data/ccss-ii/estadistica.js"></script>
+  <script defer src="./js/data/ccss-ii/inferencia.js"></script>
+  <script defer src="./js/data/ccss-ii/matrices.js"></script>
+  <script defer src="./js/data/ccss-ii/sistemas.js"></script>
+  <script defer src="./js/data/ccss-ii/sucesiones.js"></script>
+  <script defer src="./js/data/ccss-ii/programacion-lineal.js"></script>
+  <script defer src="./js/data/ccss-ii/funciones.js"></script>
+  <script defer src="./js/data/ccss-ii/limites.js"></script>
+  <script defer src="./js/data/ccss-ii/derivadas.js"></script>
+  <script defer src="./js/data/ccss-ii/integrales.js"></script>
+  <script defer src="./js/data/mates-i/nivel-1.js"></script>
+  <script defer src="./js/data/mates-i/nivel-2.js"></script>
+  <script defer src="./js/data/ccss-i/nivel-1.js"></script>
+  <script defer src="./js/data/ccss-i/nivel-2.js"></script>
+  <script defer src="./js/app.js"></script>
+</body>
+</html>
